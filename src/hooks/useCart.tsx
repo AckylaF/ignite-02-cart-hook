@@ -23,11 +23,11 @@ const CartContext = createContext<CartContextData>({} as CartContextData);
 
 export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const [cart, setCart] = useState<Product[]>(() => {
-    // const storagedCart = Buscar dados do localStorage
+    const storagedCart = localStorage.getItem('@RocketShoes:cart')
 
-    // if (storagedCart) {
-    //   return JSON.parse(storagedCart);
-    // }
+    if (storagedCart) {
+      return JSON.parse(storagedCart);
+    }
 
     return [];
   });
@@ -35,16 +35,34 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const addProduct = async (productId: number) => {
     try {
       // TODO
+      const product = (await api.get("/products")
+        .then(res => res.data as Product[]))
+        .filter(product => product.id === productId)[0]
+      
+      const existingProduct = cart.find(product => product.id === productId)
+      if(existingProduct) {
+        updateProductAmount({productId, amount: existingProduct.amount + 1 })
+        
+      } else {
+        setCart(prevState => [...prevState, { ...product, amount: 1 } ])
+
+      }
+      
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
     } catch {
       // TODO
+      toast.error('Erro na adição do produto')
     }
   };
 
   const removeProduct = (productId: number) => {
     try {
       // TODO
+      setCart(cart.filter(product => product.id !== productId))
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
     } catch {
       // TODO
+      toast.error('Erro na remoção do produto')
     }
   };
 
@@ -54,8 +72,27 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   }: UpdateProductAmount) => {
     try {
       // TODO
+      const productStock = (await api.get("/stock")
+      .then(res => res.data as Stock[]))
+      .filter(product => product.id === productId)[0].amount
+
+      if(productStock <= 0) return
+
+      
+      if(productStock >= amount) {
+        const idx = cart.findIndex(product => product.id === productId)
+        let updatedCart = [...cart]
+        updatedCart[idx].amount = amount
+        
+        setCart(updatedCart)
+
+      } else {
+        toast.error('Quantidade solicitada fora de estoque')
+      }
+
     } catch {
       // TODO
+      toast.error('Erro na adição do produto')
     }
   };
 
