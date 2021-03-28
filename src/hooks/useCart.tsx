@@ -35,17 +35,31 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   const addProduct = async (productId: number) => {
     try {
       // TODO
+<<<<<<< HEAD
       const product: Product = await api.get(`/products/${productId}`).then(res => res.data)
+=======
+      const product = (await api.get("/products")
+        .then(res => res.data as Product[]))
+        .filter(product => product.id === productId)[0]
+>>>>>>> a82776b2aad0833bce08893ae648f2d76acf1f6e
       
       const existingProduct = cart.find(product => product.id === productId)
       if(existingProduct) {
         updateProductAmount({productId, amount: existingProduct.amount + 1 })
         
       } else {
+<<<<<<< HEAD
         localStorage.setItem('@RocketShoes:cart', JSON.stringify([...cart, { ...product, amount: 1 }]))
         setCart(prevState => [...prevState, { ...product, amount: 1 } ])
       }
       
+=======
+        setCart(prevState => [...prevState, { ...product, amount: 1 } ])
+
+      }
+      
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart))
+>>>>>>> a82776b2aad0833bce08893ae648f2d76acf1f6e
     } catch {
       // TODO
       toast.error('Erro na adição do produto')
